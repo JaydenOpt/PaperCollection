@@ -139,4 +139,28 @@ The evaluation is performed in the system Ubuntu 16.04 which is running on an In
 
    我们观察到函数内联是导致错误匹配的原因。 例如，模板A调用B，而相应的目标函数B'被内联到A'变为A'B'。 因为A'B'的语义特征包含A'和B'的语义特征，所以A的签名长度短于A'B'的签名长度。 因此，函数对（A，A'B'）的相似性得分可能相对较小，而BINMATCH报告错误匹配。
 
-2. 
+2. Cross-Compiler Analysis：受到编译器浮点数运算的影响，GCC对浮点数的计算有额外操作：判断栈空还是满，Clang没有额外操作。因为这个原因，相同的数在不同的编译器环境下的编译结果不同
+
+3. ComParision with Existing Work：比较了Kam1n0和BinDiff。这两种工具依赖的都是函数的语法和结构特征，在跨平台的比较情况下表现不如BinMatch
+
+4. Processing Time：BinMatch在仿真环节仅仅针对用户定义的函数进行了仿真，对自带函数（内存申请、读写操作）的函数没有进行仿真，节省了大量时间
+
+#### Accuracy of Matching Obfuscated Code
+
+在加入代码混淆（Obfuscated）后比较BinMatch和BinDiff的准确度如何，BinMatch小胜一筹，BinDiff在某些情况下的成绩和BinMatch 相差不多
+
+#### Case Study：libpng vs. NConvert
+
+libpng库有一个漏洞：整数溢出错误，NConvert在函数中调用了这个库，实验进行步骤：
+
+* 运行libpng，并记录函数的语义特征和动态特征
+* png_set_unknown_chunks这个函数有四个参数，所以只需要用BinMatch仿真NConvert中的337个参数数量为4的函数。
+* 比较签名函数和目标函数，最后耗时57个小时，找到一个函数的最高准确率在37.8%
+
+### Related Works
+
+BinGo：对特征采用用的是随机输入的方式，这样显得输入没有实际意义，并且不能保证触发函数的全部功能
+
+**To Sum Up**，the topic of binary code clone analysis mainly focuses on two points: 
+
+i) what signature to adopt, such as opcodes and operand types (syntax), CFG (structure) and system calls (semantics); ii) how to capture the signatures, such as statically disassembling, dynamically running and sampling
